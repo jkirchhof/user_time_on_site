@@ -1,0 +1,84 @@
+<?php
+
+/**
+ * @file
+ * User time on site module.
+ */
+
+/**
+ * Implements hook_entity_info().
+ */
+function user_time_on_site_entity_info() {
+  return [
+    'user_time_on_site' => [
+      'label' => t('Active User Session'),
+      'plural label' => t('Active User Sessions'),
+      'entity class' => 'Entity',
+      'controller class' => 'EntityAPIController',
+      'base table' => 'user_time_on_site',
+      'entity keys' => [
+        'id' => 'id',
+      ],
+      'label callback' => 'entity_class_label',
+      'uri callback' => 'entity_class_uri',
+      'module' => 'user_time_on_site',
+      'views controller class' => 'UserTimeOnSiteViewsController',
+    ],
+  ];
+}
+
+/**
+ * Implements hook_exit().
+ */
+function user_time_on_site_exit() {
+  global $user;
+  // Anonymous user sessions aren't recorded.
+  if (!$user->uid) {
+    return;
+  }
+  // Update entity for current session, if found.
+  $updated = db_update('user_time_on_site')
+    ->fields([
+      'last_time' => time(),
+    ])
+    ->condition('uid', $user->uid)
+    ->condition('last_time', time() - (15 * 60), '>=')
+    ->execute();
+  // If no current session, create one.
+  if (!$updated) {
+    db_insert('user_time_on_site')
+      ->fields([
+        'first_time' => time(),
+        'last_time' => time(),
+        'uid' => $user->uid,
+      ])
+      ->execute();
+  }
+}
+
+/**
+ * User time on site viewsController class.
+ */
+class UserTimeOnSiteViewsController extends EntityDefaultViewsController {
+
+  /**
+   * Treat dates as dates and relate user ID to user entity.
+   */
+  public function views_data() {
+    $data = parent::views_data();
+    $data['user_time_on_site']['first_time']['field']['handler'] = 'views_handler_field_date';
+    $data['user_time_on_site']['last_time']['field']['handler'] = 'views_handler_field_date';
+    $data['user_time_on_site']['uid'] = [
+      'title' => t('User'),
+      'relationship' => [
+        'base' => 'users',
+        'base field' => 'uid',
+        'field' => 'uid',
+        'handler' => 'views_handler_relationship',
+        'label' => t('user'),
+      ],
+    ];
+    return $data;
+  }
+
+}

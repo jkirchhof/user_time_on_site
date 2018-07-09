@@ -1,0 +1,6 @@
+name = User Time on Site
+description = Log time each user spends on site
+dependencies[] = views
+dependencies[] = entity
+package = Users
+core = 7.x

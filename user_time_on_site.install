@@ -1,0 +1,52 @@
+<?php
+
+/**
+ * @file
+ * User time on site schema.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function user_time_on_site_schema() {
+  $schema['user_time_on_site'] = [
+    'description' => 'Stores user time on site data.',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique user ID.',
+      ],
+      'first_time' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Time session started.',
+      ],
+      'last_time' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Time of last request in session.',
+      ],
+      'uid' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => "Foreign key: {users}.uid of user.",
+      ],
+    ],
+    'indexes' => [
+      'uid_last_time' => ['uid', 'last_time'],
+    ],
+    'primary key' => ['id'],
+    'foreign keys' => [
+      'uid' => [
+        'table' => 'users',
+        'columns' => ['uid' => 'uid'],
+      ],
+    ],
+  ];
+  return $schema;
+}
