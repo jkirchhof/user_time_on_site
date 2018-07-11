@@ -69,6 +69,13 @@ function user_time_on_site_exit() {
 }
 
 /**
+ * Implements hook_views_api().
+ */
+function user_time_on_site_views_api() {
+  return ['api' => 3];
+}
+
+/**
  * User time on site viewsController class.
  */
 class UserTimeOnSiteViewsController extends EntityDefaultViewsController {
