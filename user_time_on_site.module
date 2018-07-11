@@ -37,15 +37,27 @@ function user_time_on_site_exit() {
     return;
   }
   // Update entity for current session, if found.
-  $updated = db_update('user_time_on_site')
-    ->fields([
-      'last_time' => time(),
-    ])
-    ->condition('uid', $user->uid)
-    ->condition('last_time', time() - (15 * 60), '>=')
+  $query = new EntityFieldQuery();
+  $result = $query->entityCondition('entity_type', 'user_time_on_site')
+    ->propertyCondition('uid', $user->uid)
+    ->propertyCondition('last_time', time() - (15 * 60), '>=')
     ->execute();
-  // If no current session, create one.
-  if (!$updated) {
+  if (count($result)) {
+    // Update current session.
+    // db_update returns number of modified rows, but it can't be used to test
+    // for existing session. For AJAX requests sent on page load and similar
+    // requests in the same second, db_update shouldn't change the database.
+    // It's least complicated to sometimes make a redundant UPDATE query.
+    $updated = db_update('user_time_on_site')
+      ->fields([
+        'last_time' => time(),
+      ])
+      ->condition('uid', $user->uid)
+      ->condition('last_time', time() - (15 * 60), '>=')
+      ->execute();
+  }
+  else {
+    // Insert new.
     db_insert('user_time_on_site')
       ->fields([
         'first_time' => time(),
