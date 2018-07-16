@@ -3,5 +3,6 @@ description = Log time each user spends on site
 dependencies[] = views
 dependencies[] = entity
 dependencies[] = realname
+dependencies[] = user
 package = Users
 core = 7.x
